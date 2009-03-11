@@ -22,9 +22,9 @@ class CElegansGFFTest(unittest.TestCase):
     _test_dir = os.path.join(os.getcwd(), "GFF")
     _test_seq_file = os.path.join(self._test_dir, "c_elegans_WS199_dna_shortened.fa")
     _test_gff_file = os.path.join(self._test_dir, "c_elegans_WS199_shortened_gff.txt")
-    _full_dir = "/usr/home/chapmanb/mgh/ruvkun_rnai/wormbase/" + "data_files_WS198"
+    _full_dir = "/usr/home/chapmanb/mgh/ruvkun_rnai/wormbase/" + "data_files_WS198"     # TODO: make relative path
 
-    known_values = {}
+    known_values = {}   # TODO: define a dictionary of known values that we want to check, specific to this use case
 
     _is_setup = False
 
