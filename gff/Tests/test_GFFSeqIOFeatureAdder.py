@@ -79,7 +79,7 @@ class CElegansGFFTest(unittest.TestCase):
     def t_flat_features(self):
         """Check addition of flat non-nested features to multiple records.
         """
-       pcr_limit_info = dict(
+        pcr_limit_info = dict(
             gff_types = [('Orfeome', 'PCR_product'),
                          ('GenePair_STS', 'PCR_product'),
                          ('Promoterome', 'PCR_product')]
