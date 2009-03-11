@@ -3,6 +3,8 @@
 This deals with GFF3 formatted files, a tab delimited format for storing
 sequence features and annotations:
 
+# TODO: a doctest would be nice here
+
 http://www.sequenceontology.org/gff3.shtml
 """
 import collections
