@@ -23,7 +23,6 @@ class CElegansGFFTest(unittest.TestCase):
     _test_seq_file = os.path.join(self._test_dir, "c_elegans_WS199_dna_shortened.fa")
     _test_gff_file = os.path.join(self._test_dir, "c_elegans_WS199_shortened_gff.txt")
     _full_dir = "/usr/home/chapmanb/mgh/ruvkun_rnai/wormbase/" + "data_files_WS198"
-    _test_dir = os.path.join(os.getcwd(), "GFF")
 
     known_values = {}
 
