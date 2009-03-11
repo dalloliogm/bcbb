@@ -18,14 +18,31 @@ class CElegansGFFTest(unittest.TestCase):
     genome_feature_tables/GFF3/
     ftp://ftp.wormbase.org/pub/wormbase/genomes/c_elegans/sequences/dna/
     """
+
+    _test_dir = os.path.join(os.getcwd(), "GFF")
+    _test_seq_file = os.path.join(self._test_dir, "c_elegans_WS199_dna_shortened.fa")
+    _test_gff_file = os.path.join(self._test_dir, "c_elegans_WS199_shortened_gff.txt")
+    _full_dir = "/usr/home/chapmanb/mgh/ruvkun_rnai/wormbase/" + "data_files_WS198"
+    _test_dir = os.path.join(os.getcwd(), "GFF")
+
+    known_values = {}
+
+    _is_setup = False
+
+    @classmethod
+    def setUpClass(cls):
+        cls._is_setup = True
+
+        # by moving this here, it saves it to compute it every time
+        with open(self._test_seq_file) as seq_handle:
+            cls.seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
+        cls.feature_adder = GFFFeatureAdder(cls.seq_dict)
+ 
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
-        self._test_seq_file = os.path.join(self._test_dir,
-                "c_elegans_WS199_dna_shortened.fa")
-        self._test_gff_file = os.path.join(self._test_dir,
-                "c_elegans_WS199_shortened_gff.txt")
-        self._full_dir = "/usr/home/chapmanb/mgh/ruvkun_rnai/wormbase/" + \
-                "data_files_WS198"
+        
+        if self._is_setup is False:
+            self.setUpClass()
+
 
     def not_t_full_celegans(self):
         """Test the full C elegans chromosome and GFF files.
@@ -37,11 +54,9 @@ class CElegansGFFTest(unittest.TestCase):
         # read the sequence information
         seq_file = os.path.join(self._full_dir, "c_elegans.WS199.dna.fa")
         gff_file = os.path.join(self._full_dir, "c_elegans.WS199.gff3")
-        with open(seq_file) as seq_handle:
-            seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
-        feature_adder = GFFFeatureAdder(seq_dict)
+
         #with open(gff_file) as gff_handle:
-        #    possible_limits = feature_adder.available_limits(gff_handle)
+        #    possible_limits = self.feature_adder.available_limits(gff_handle)
         #    pprint.pprint(possible_limits)
         rnai_types = [('Orfeome', 'PCR_product'),
                     ('GenePair_STS', 'PCR_product'),
@@ -52,41 +67,32 @@ class CElegansGFFTest(unittest.TestCase):
                       ('Coding_transcript', 'CDS')]
         limit_info = dict(gff_types = rnai_types + gene_types)
         with open(gff_file) as gff_handle:
-            feature_adder.add_features(gff_handle, limit_info)
+            self.feature_adder.add_features(gff_handle, limit_info)
 
     def t_possible_limits(self):
         """Calculate possible queries to limit a GFF file.
         """
-        with open(self._test_seq_file) as seq_handle:
-            seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
-        feature_adder = GFFFeatureAdder(seq_dict)
-        with open(self._test_gff_file) as gff_handle:
-            possible_limits = feature_adder.available_limits(gff_handle)
+       with open(self._test_gff_file) as gff_handle:
+            possible_limits = self.feature_adder.available_limits(gff_handle)
             print
             pprint.pprint(possible_limits)
 
     def t_flat_features(self):
         """Check addition of flat non-nested features to multiple records.
         """
-        with open(self._test_seq_file) as seq_handle:
-            seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
-        feature_adder = GFFFeatureAdder(seq_dict)
-        pcr_limit_info = dict(
+       pcr_limit_info = dict(
             gff_types = [('Orfeome', 'PCR_product'),
                          ('GenePair_STS', 'PCR_product'),
                          ('Promoterome', 'PCR_product')]
             )
         with open(self._test_gff_file) as gff_handle:
-            feature_adder.add_features(gff_handle, pcr_limit_info)
-        assert len(feature_adder.base['I'].features) == 4
-        assert len(feature_adder.base['X'].features) == 5
+            self.feature_adder.add_features(gff_handle, pcr_limit_info)
+        assert len(self.feature_adder.base['I'].features) == 4
+        assert len(self.feature_adder.base['X'].features) == 5
 
     def t_nested_features(self):
         """Check three-deep nesting of features with gene, mRNA and CDS.
         """
-        with open(self._test_seq_file) as seq_handle:
-            seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
-        feature_adder = GFFFeatureAdder(seq_dict)
         cds_limit_info = dict(
                 gff_types = [('Coding_transcript', 'gene'),
                              ('Coding_transcript', 'mRNA'),
@@ -94,8 +100,8 @@ class CElegansGFFTest(unittest.TestCase):
                 gff_id = ['I']
                 )
         with open(self._test_gff_file) as gff_handle:
-            feature_adder.add_features(gff_handle, cds_limit_info)
-        final_rec = feature_adder.base['I']
+            self.feature_adder.add_features(gff_handle, cds_limit_info)
+        final_rec = self.feature_adder.base['I']
         # first gene feature is plain
         assert len(final_rec.features) == 2 # two gene feature
         assert len(final_rec.features[0].sub_features) == 1 # one transcript
@@ -105,9 +111,6 @@ class CElegansGFFTest(unittest.TestCase):
     def t_nested_multiparent_features(self):
         """Verify correct nesting of features with multiple parents.
         """
-        with open(self._test_seq_file) as seq_handle:
-            seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
-        feature_adder = GFFFeatureAdder(seq_dict)
         cds_limit_info = dict(
                 gff_types = [('Coding_transcript', 'gene'),
                              ('Coding_transcript', 'mRNA'),
@@ -115,8 +118,8 @@ class CElegansGFFTest(unittest.TestCase):
                 gff_id = ['I']
                 )
         with open(self._test_gff_file) as gff_handle:
-            feature_adder.add_features(gff_handle, cds_limit_info)
-        final_rec = feature_adder.base['I']
+            self.feature_adder.add_features(gff_handle, cds_limit_info)
+        final_rec = self.feature_adder.base['I']
         # second gene feature is multi-parent
         assert len(final_rec.features) == 2 # two gene feature
         cur_subs = final_rec.features[1].sub_features
